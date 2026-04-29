@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WI Process Audit — Fontaine Heavy Haul Military</title>
+<style>
+  :root {
+    --bg:      #F5F6F8;
+    --surface: #FFFFFF;
+    --surface2:#F0F1F3;
+    --nav:     #1E2A3A;
+    --border:  #E2E4E8;
+    --text:    #1A1A2E;
+    --muted:   #6B7280;
+    --blue:    #2563EB;
+    --green:   #16A34A;
+    --red:     #DC2626;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .nav {
+    background: var(--nav); color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px; height: 54px; position: sticky; top: 0; z-index: 100;
+  }
+  .nav-brand { font-size: 13px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+  .nav-brand span { color: #7FA8D4; font-weight: 400; margin-left: 8px; }
+  .nav-right { font-size: 12px; color: #7FA8D4; }
+
+  .main { max-width: 680px; margin: 0 auto; padding: 32px 24px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 18px; overflow: hidden; }
+  .card-header { background: var(--surface2); padding: 10px 18px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .card-body { padding: 20px; }
+
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field.full { grid-column: 1 / -1; }
+  label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+
+  input[type="text"], input[type="date"], textarea {
+    font-family: 'Segoe UI', sans-serif; font-size: 14px; color: var(--text);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 5px;
+    padding: 9px 12px; width: 100%; outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); background: #fff; }
+  textarea { resize: vertical; min-height: 130px; line-height: 1.6; }
+
+  .verdict-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
+  .verdict-btn {
+    display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+    border: 2px solid var(--border); border-radius: 7px; background: var(--bg);
+    cursor: pointer; font-family: inherit; text-align: left; transition: all .15s;
+  }
+  .verdict-btn:hover { border-color: var(--blue); background: #fff; }
+  .verdict-btn.sel-yes { border-color: var(--green); background: #F0FDF4; }
+  .verdict-btn.sel-no  { border-color: var(--red);   background: #FEF2F2; }
+  .v-icon {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; flex-shrink: 0;
+    border: 2px solid var(--border); background: #fff; color: var(--muted); transition: all .15s;
+  }
+  .verdict-btn.sel-yes .v-icon { background: var(--green); border-color: var(--green); color: #fff; }
+  .verdict-btn.sel-no  .v-icon { background: var(--red);   border-color: var(--red);   color: #fff; }
+  .v-label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .v-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+  .btn {
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    padding: 10px 22px; border-radius: 6px; border: none; cursor: pointer; transition: all .15s;
+  }
+  .btn-primary { background: var(--blue); color: #fff; min-width: 140px; }
+  .btn-primary:hover:not(:disabled) { background: #1d4ed8; }
+  .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--border); }
+
+  /* Status banner */
+  .banner {
+    display: none; align-items: center; gap: 12px; padding: 14px 18px;
+    border-radius: 7px; font-size: 13px; font-weight: 500; margin-bottom: 18px;
+  }
+  .banner.show { display: flex; }
+  .banner-success { background: #F0FDF4; border: 1px solid #BBF7D0; color: #15803D; }
+  .banner-error   { background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; }
+  .banner-loading { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; }
+
+  .spinner {
+    width: 16px; height: 16px; border: 2px solid currentColor;
+    border-top-color: transparent; border-radius: 50%;
+    animation: spin .7s linear infinite; flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-brand">Fontaine Heavy Haul Military <span>WI Process Audit</span></div>
+  <div class="nav-right">Form No. QF-WIA-001</div>
+</div>
+
+<div class="main">
+
+  <div class="banner" id="banner">
+    <div class="spinner" id="banner-spinner" style="display:none;"></div>
+    <span id="banner-msg"></span>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Audit Information</div>
+    <div class="card-body">
+      <div class="field-grid">
+        <div class="field">
+          <label for="f-date">Audit Date</label>
+          <input type="date" id="f-date">
+        </div>
+        <div class="field">
+          <label for="f-auditor">Auditor Name</label>
+          <input type="text" id="f-auditor" placeholder="Your full name">
+        </div>
+        <div class="field">
+          <label for="f-wi-title">Work Instruction Title</label>
+          <input type="text" id="f-wi-title" placeholder="e.g. Final Assembly – Brake System">
+        </div>
+        <div class="field">
+          <label for="f-wi-doc">WI Document #</label>
+          <input type="text" id="f-wi-doc" placeholder="e.g. WI-FA-042">
+        </div>
+        <div class="field">
+          <label for="f-section">Section / Area Audited</label>
+          <input type="text" id="f-section" placeholder="e.g. Final Assembly, Final Weld">
+        </div>
+        <div class="field">
+          <label for="f-operator">Operator Audited</label>
+          <input type="text" id="f-operator" placeholder="Operator name or ID">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Notes / Observations</div>
+    <div class="card-body">
+      <div class="field full">
+        <label for="f-notes">Observations</label>
+        <textarea id="f-notes" placeholder="Record what was observed — steps watched, deviations noticed, context, etc."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Audit Verdict</div>
+    <div class="card-body">
+      <label style="display:block;margin-bottom:10px;font-size:13px;font-weight:600;color:var(--text);text-transform:none;letter-spacing:0;">
+        Does the work instruction reflect how the work is actually being performed?
+      </label>
+      <div class="verdict-row">
+        <button class="verdict-btn" id="btn-yes" onclick="setVerdict('yes')">
+          <div class="v-icon">✓</div>
+          <div><div class="v-label">Yes</div><div class="v-sub">WI matches current practice</div></div>
+        </button>
+        <button class="verdict-btn" id="btn-no" onclick="setVerdict('no')">
+          <div class="v-icon">✗</div>
+          <div><div class="v-label">No</div><div class="v-sub">WI does not match current practice</div></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="clearForm()">Clear</button>
+    <button class="btn btn-primary" id="submit-btn" onclick="submitAudit()">Submit Audit →</button>
+  </div>
+
+</div>
+
+<script>
+  let verdict = null;
+  document.getElementById('f-date').valueAsDate = new Date();
+
+  function setVerdict(v) {
+    verdict = v;
+    document.getElementById('btn-yes').className = 'verdict-btn' + (v === 'yes' ? ' sel-yes' : '');
+    document.getElementById('btn-no').className  = 'verdict-btn' + (v === 'no'  ? ' sel-no'  : '');
+  }
+
+  function showBanner(type, msg) {
+    const b = document.getElementById('banner');
+    const s = document.getElementById('banner-spinner');
+    const m = document.getElementById('banner-msg');
+    b.className = `banner show banner-${type}`;
+    s.style.display = type === 'loading' ? 'block' : 'none';
+    m.textContent = msg;
+    if (type !== 'loading') window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function hideBanner() { document.getElementById('banner').className = 'banner'; }
+
+  async function submitAudit() {
+    const date     = document.getElementById('f-date').value;
+    const auditor  = document.getElementById('f-auditor').value.trim();
+    const wiTitle  = document.getElementById('f-wi-title').value.trim();
+    const wiDoc    = document.getElementById('f-wi-doc').value.trim();
+    const section  = document.getElementById('f-section').value.trim();
+    const operator = document.getElementById('f-operator').value.trim();
+    const notes    = document.getElementById('f-notes').value.trim();
+
+    if (!date || !auditor || !wiTitle || !section || !operator) {
+      showBanner('error', 'Please fill in all required fields.'); return;
+    }
+    if (!verdict) {
+      showBanner('error', 'Please select a verdict — Yes or No.'); return;
+    }
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+    showBanner('loading', 'Generating PDF and sending email…');
+
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date, auditor, wiTitle, wiDoc, section, operator, notes, verdict })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Submission failed');
+      showBanner('success', '✓ Audit submitted — PDF emailed to danderson@fontainespecialized.com');
+      clearForm();
+    } catch (err) {
+      showBanner('error', `Error: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Submit Audit →';
+    }
+  }
+
+  function clearForm() {
+    document.getElementById('f-date').valueAsDate = new Date();
+    ['f-auditor','f-wi-title','f-wi-doc','f-section','f-operator','f-notes']
+      .forEach(id => document.getElementById(id).value = '');
+    verdict = null;
+    document.getElementById('btn-yes').className = 'verdict-btn';
+    document.getElementById('btn-no').className  = 'verdict-btn';
+    hideBanner();
+  }
+</script>
+</body>
+</html>
