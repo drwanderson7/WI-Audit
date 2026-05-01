@@ -22,12 +22,33 @@
 
   .nav {
     background: var(--nav); color: #fff;
+    padding: 0 28px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-top {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 28px; height: 54px; position: sticky; top: 0; z-index: 100;
+    height: 54px;
   }
   .nav-brand { font-size: 13px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
   .nav-brand span { color: #7FA8D4; font-weight: 400; margin-left: 8px; }
-  .nav-right { font-size: 12px; color: #7FA8D4; }
+  .nav-meta {
+    display: flex; gap: 24px; align-items: center;
+    padding: 10px 0 12px;
+    border-top: 1px solid rgba(255,255,255,.08);
+  }
+  .nav-field { display: flex; flex-direction: column; gap: 3px; }
+  .nav-field-label { font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #7FA8D4; }
+  .nav-field-value { font-size: 12px; font-weight: 600; color: #fff; }
+  .nav-field input[type="text"], .nav-field input[type="date"] {
+    font-family: 'Segoe UI', sans-serif; font-size: 12px; font-weight: 500;
+    color: #fff; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+    border-radius: 4px; padding: 4px 8px; width: 110px; outline: none;
+    transition: border-color .15s, background .15s;
+  }
+  .nav-field input[type="date"] { width: 130px; color-scheme: dark; }
+  .nav-field input:focus { border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.15); }
+  .nav-field input::placeholder { color: rgba(255,255,255,.35); }
+  .nav-form-no { font-size: 11px; font-weight: 700; color: #C8D4E8; letter-spacing: .04em; background: rgba(255,255,255,.08); padding: 4px 10px; border-radius: 4px; white-space: nowrap; }
 
   .main { max-width: 680px; margin: 0 auto; padding: 32px 24px; }
 
@@ -100,8 +121,24 @@
 <body>
 
 <div class="nav">
-  <div class="nav-brand">Fontaine Heavy Haul Military <span>WI Process Audit</span></div>
-  <div class="nav-right">Form No. QF-WIA-001</div>
+  <div class="nav-top">
+    <div class="nav-brand">Fontaine Heavy Haul Military <span>WI Process Audit</span></div>
+    <div class="nav-form-no">Form No. F-6021</div>
+  </div>
+  <div class="nav-meta">
+    <div class="nav-field">
+      <div class="nav-field-label">Form Revision #</div>
+      <input type="text" id="f-form-rev" placeholder="e.g. Rev 1">
+    </div>
+    <div class="nav-field">
+      <div class="nav-field-label">Date Created</div>
+      <input type="date" id="f-date-created">
+    </div>
+    <div class="nav-field">
+      <div class="nav-field-label">Date Revised</div>
+      <input type="date" id="f-date-revised">
+    </div>
+  </div>
 </div>
 
 <div class="main">
@@ -110,6 +147,7 @@
     <div class="spinner" id="banner-spinner" style="display:none;"></div>
     <span id="banner-msg"></span>
   </div>
+
 
   <div class="card">
     <div class="card-header">Audit Information</div>
@@ -128,8 +166,8 @@
           <input type="text" id="f-wi-title" placeholder="e.g. Final Assembly – Brake System">
         </div>
         <div class="field">
-          <label for="f-wi-doc">WI Document #</label>
-          <input type="text" id="f-wi-doc" placeholder="e.g. WI-FA-042">
+          <label for="f-wi-rev">WI Revision #</label>
+          <input type="text" id="f-wi-rev" placeholder="e.g. Rev 3">
         </div>
         <div class="field">
           <label for="f-section">Section / Area Audited</label>
@@ -182,6 +220,8 @@
 <script>
   let verdict = null;
   document.getElementById('f-date').valueAsDate = new Date();
+  document.getElementById('f-form-rev').value = '0';
+  document.getElementById('f-date-created').value = '2026-05-01';
 
   function setVerdict(v) {
     verdict = v;
@@ -202,13 +242,16 @@
   function hideBanner() { document.getElementById('banner').className = 'banner'; }
 
   async function submitAudit() {
-    const date     = document.getElementById('f-date').value;
-    const auditor  = document.getElementById('f-auditor').value.trim();
-    const wiTitle  = document.getElementById('f-wi-title').value.trim();
-    const wiDoc    = document.getElementById('f-wi-doc').value.trim();
-    const section  = document.getElementById('f-section').value.trim();
-    const operator = document.getElementById('f-operator').value.trim();
-    const notes    = document.getElementById('f-notes').value.trim();
+    const date        = document.getElementById('f-date').value;
+    const auditor     = document.getElementById('f-auditor').value.trim();
+    const wiTitle     = document.getElementById('f-wi-title').value.trim();
+    const wiRev       = document.getElementById('f-wi-rev').value.trim();
+    const formRev     = document.getElementById('f-form-rev').value.trim();
+    const dateCreated = document.getElementById('f-date-created').value;
+    const dateRevised = document.getElementById('f-date-revised').value;
+    const section     = document.getElementById('f-section').value.trim();
+    const operator    = document.getElementById('f-operator').value.trim();
+    const notes       = document.getElementById('f-notes').value.trim();
 
     if (!date || !auditor || !wiTitle || !section || !operator) {
       showBanner('error', 'Please fill in all required fields.'); return;
@@ -226,7 +269,7 @@
       const res = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, auditor, wiTitle, wiDoc, section, operator, notes, verdict })
+        body: JSON.stringify({ date, auditor, wiTitle, wiRev, formRev, dateCreated, dateRevised, section, operator, notes, verdict })
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Submission failed');
@@ -242,7 +285,7 @@
 
   function clearForm() {
     document.getElementById('f-date').valueAsDate = new Date();
-    ['f-auditor','f-wi-title','f-wi-doc','f-section','f-operator','f-notes']
+    ['f-auditor','f-wi-title','f-wi-rev','f-form-rev','f-date-created','f-date-revised','f-section','f-operator','f-notes']
       .forEach(id => document.getElementById(id).value = '');
     verdict = null;
     document.getElementById('btn-yes').className = 'verdict-btn';
