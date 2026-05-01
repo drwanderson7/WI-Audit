@@ -73,9 +73,11 @@ function buildPDF(data) {
 
     // ── Audit Info ───────────────────────────────────────────────────────────
     sectionHeader('Audit Information');
-    rowPair('Audit Date',             formatDate(data.date),  'Auditor Name',   data.auditor);
-    rowPair('Work Instruction Title', data.wiTitle,           'WI Document #',  data.wiDoc || '—');
-    rowPair('Section / Area Audited', data.section,           'Operator Audited', data.operator);
+    rowPair('Audit Date',             formatDate(date),      'Auditor Name',      data.auditor);
+    rowPair('Work Instruction Title', data.wiTitle,          'WI Revision #',     data.wiRev || '—');
+    rowPair('Section / Area Audited', data.section,          'Operator Audited',  data.operator);
+    rowPair('Form Number',            'F-6021',              'Form Revision #',   data.formRev || '—');
+    rowPair('Date Created',           formatDate(data.dateCreated), 'Date Revised', formatDate(data.dateRevised));
 
     y += 10;
 
@@ -133,7 +135,7 @@ module.exports = async (req, res) => {
 
   try {
     const data = req.body;
-    const { date, auditor, wiTitle, wiDoc, section, operator, notes, verdict } = data;
+    const { date, auditor, wiTitle, wiRev, formRev, dateCreated, dateRevised, section, operator, notes, verdict } = data;
 
     if (!date || !auditor || !wiTitle || !section || !operator || !verdict) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -158,9 +160,10 @@ module.exports = async (req, res) => {
             <table style="width:100%;border-collapse:collapse;font-size:13px;">
               <tr><td style="padding:6px 0;color:#6B7280;width:160px;">Audit Date</td><td style="padding:6px 0;font-weight:600;">${fDate}</td></tr>
               <tr><td style="padding:6px 0;color:#6B7280;">Auditor</td><td style="padding:6px 0;font-weight:600;">${auditor}</td></tr>
-              <tr><td style="padding:6px 0;color:#6B7280;">WI Title</td><td style="padding:6px 0;font-weight:600;">${wiTitle}${wiDoc ? ' — ' + wiDoc : ''}</td></tr>
+              <tr><td style="padding:6px 0;color:#6B7280;">WI Title</td><td style="padding:6px 0;font-weight:600;">${wiTitle}${data.wiRev ? ' — ' + data.wiRev : ''}</td></tr>
               <tr><td style="padding:6px 0;color:#6B7280;">Section / Area</td><td style="padding:6px 0;">${section}</td></tr>
               <tr><td style="padding:6px 0;color:#6B7280;">Operator</td><td style="padding:6px 0;">${operator}</td></tr>
+              <tr><td style="padding:6px 0;color:#6B7280;">Form #</td><td style="padding:6px 0;">F-6021${data.formRev ? ' — ' + data.formRev : ''}</td></tr>
             </table>
             <div style="margin:16px 0;padding:12px 16px;background:${verdict === 'yes' ? '#F0FDF4' : '#FEF2F2'};border-left:4px solid ${verdict === 'yes' ? '#16A34A' : '#DC2626'};border-radius:4px;font-size:13px;font-weight:600;color:${verdict === 'yes' ? '#15803D' : '#B91C1C'};">
               ${verdict === 'yes' ? '✓ WI matches current practice' : '✗ WI does not match current practice'}
