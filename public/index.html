@@ -271,9 +271,21 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ date, auditor, wiTitle, wiRev, formRev, dateCreated, dateRevised, section, operator, notes, verdict })
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Submission failed');
-      showBanner('success', '✓ Audit submitted — PDF emailed to danderson@fontainespecialized.com');
+      let json;
+      try { json = await res.json(); } catch(e) { throw new Error('Server returned an invalid response'); }
+      if (!res.ok) throw new Error(json.error || `Server error ${res.status}`);
+
+      // Auto-download the PDF
+      if (json.pdf) {
+        const bytes = Uint8Array.from(atob(json.pdf), c => c.charCodeAt(0));
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = json.filename || 'WI_Audit.pdf'; a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      showBanner('success', '✓ Audit submitted — PDF emailed and downloaded.');
       clearForm();
     } catch (err) {
       showBanner('error', `Error: ${err.message}`);
