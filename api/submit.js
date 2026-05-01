@@ -32,7 +32,7 @@ function buildPDF(data) {
     doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(13)
        .text('FONTAINE HEAVY HAUL MILITARY', 62, 62, { width: W - 120 });
     doc.fillColor('#7FA8D4').font('Helvetica').fontSize(10)
-       .text('Work Instruction Process Audit  |  Form No. QF-WIA-001', 62, 78);
+       .text('Work Instruction Process Audit  |  Form No. F-6021', 62, 78);
 
     // Verdict badge (top right of header)
     const verdictText = data.verdict === 'yes' ? 'MATCHES' : 'MISMATCH';
@@ -73,7 +73,7 @@ function buildPDF(data) {
 
     // ── Audit Info ───────────────────────────────────────────────────────────
     sectionHeader('Audit Information');
-    rowPair('Audit Date',             formatDate(date),      'Auditor Name',      data.auditor);
+    rowPair('Audit Date',             formatDate(data.date),  'Auditor Name',      data.auditor);
     rowPair('Work Instruction Title', data.wiTitle,          'WI Revision #',     data.wiRev || '—');
     rowPair('Section / Area Audited', data.section,          'Operator Audited',  data.operator);
     rowPair('Form Number',            'F-6021',              'Form Revision #',   data.formRev || '—');
@@ -119,7 +119,7 @@ function buildPDF(data) {
     // ── Footer ────────────────────────────────────────────────────────────────
     doc.moveTo(50, 740).lineTo(562, 740).strokeColor(BORDER).lineWidth(0.5).stroke();
     doc.fillColor(MUTED).font('Helvetica').fontSize(8)
-       .text(`Form No. QF-WIA-001  |  Submitted: ${new Date().toLocaleString()}  |  Retain per document control requirements`, 50, 746, { width: W, align: 'center' });
+       .text(`Form No. F-6021  |  Submitted: ${new Date().toLocaleString()}  |  Retain per document control requirements`, 50, 746, { width: W, align: 'center' });
 
     doc.end();
   });
