@@ -4,6 +4,9 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 const TO_EMAIL = 'danderson@fontainespecialized.com';
 
+// Required for Vercel — disable default body parser to handle raw stream
+export const config = { api: { bodyParser: true } };
+
 function formatDate(d) {
   if (!d) return '—';
   const [y, m, day] = d.split('-');
@@ -179,7 +182,7 @@ module.exports = async (req, res) => {
       }]
     });
 
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, pdf: pdfBuffer.toString('base64'), filename: `WI_Audit_${wiTitle.replace(/[^a-z0-9]/gi, '_')}_${date}.pdf` });
 
   } catch (err) {
     console.error(err);
